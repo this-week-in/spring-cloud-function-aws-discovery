@@ -17,7 +17,7 @@ class LambdaDiscoveryClientTest {
 	class MyApp
 
 	@Autowired
-	val ldc:  DiscoveryClient? = null
+	val ldc: DiscoveryClient? = null
 
 	@Test
 	fun getServices() {

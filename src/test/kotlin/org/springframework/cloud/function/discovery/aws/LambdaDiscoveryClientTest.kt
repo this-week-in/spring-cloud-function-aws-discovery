@@ -1,5 +1,6 @@
 package org.springframework.cloud.function.discovery.aws
 
+import com.amazonaws.regions.Regions
 import org.assertj.core.api.Assertions
 import org.junit.Test
 import org.junit.runner.RunWith

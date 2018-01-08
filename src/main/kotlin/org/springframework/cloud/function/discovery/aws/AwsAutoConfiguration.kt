@@ -21,7 +21,7 @@ import org.springframework.core.env.Environment
 @Configuration
 class AwsAutoConfiguration(private val env: Environment) {
 
-	private val region = Regions.valueOf(
+	private val region = Regions.fromName(
 			env.getProperty("cloud.aws.region", Regions.US_EAST_1.name))
 
 	@Bean

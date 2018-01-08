@@ -65,10 +65,10 @@ class LambdaDiscoveryClient(private val region: Regions,
 													.withResourceId(resourceId)
 
 											amazonApiGateway.getIntegration(integrationRequest)
-										} catch (e: Exception) {
+										}
+										catch (e: Exception) {
 											null
 										}
-
 								if (null == integration)
 									emptyList()
 								else

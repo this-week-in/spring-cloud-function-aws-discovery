@@ -22,7 +22,9 @@ import java.net.URI
 class LambdaDiscoveryClient(private val region: Regions,
                             private val amazonApiGateway: AmazonApiGateway,
                             private val lambda: AWSLambda) : DiscoveryClient {
-
+	/**
+	 * Returns a list of the logical names for AWS Lambda functions
+	 */
 	override fun getServices(): MutableList<String> =
 			lambda
 					.listFunctions()
@@ -30,6 +32,10 @@ class LambdaDiscoveryClient(private val region: Regions,
 					.map { it.functionName }
 					.toMutableList()
 
+	/**
+	 * For any given service {@code foo} there's only one addressable URL in
+	 * AWS (behind the gateway), so this returns that single URL.
+	 */
 	override fun getInstances(serviceId: String): MutableList<ServiceInstance> =
 			mutableListOf(SimpleDiscoveryProperties.SimpleServiceInstance(
 					URI.create(urlByFunctionName(serviceId))))
@@ -38,6 +44,10 @@ class LambdaDiscoveryClient(private val region: Regions,
 			"for AWS Lambda functions mapped to API Gateway endpoints")
 			.trim()
 
+	/**
+	 * Finds a function by its logical name, then finds any REST APIs
+	 * that have an integration with that function.
+	 */
 	private fun urlByFunctionName(functionName: String): String? {
 
 		data class PathContext(val resource: Resource,
@@ -66,8 +76,7 @@ class LambdaDiscoveryClient(private val region: Regions,
 													.withResourceId(resourceId)
 
 											amazonApiGateway.getIntegration(integrationRequest)
-										}
-										catch (e: Exception) {
+										} catch (e: Exception) {
 											null
 										}
 								if (null == integration)

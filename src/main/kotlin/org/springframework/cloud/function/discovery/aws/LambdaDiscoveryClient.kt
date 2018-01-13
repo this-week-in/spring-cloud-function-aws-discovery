@@ -67,22 +67,27 @@ class LambdaDiscoveryClient(private val region: Regions,
 							.getResources(GetResourcesRequest().withRestApiId(restApi.id))
 							.items
 							.flatMap { resource ->
-								val resourceId = resource.id
+
 								val integration: GetIntegrationResult? =
 										try {
 											val integrationRequest = GetIntegrationRequest()
 													.withHttpMethod("ANY")
 													.withRestApiId(restApi.id)
-													.withResourceId(resourceId)
+													.withResourceId(resource.id)
 
 											amazonApiGateway.getIntegration(integrationRequest)
 										} catch (e: Exception) {
 											null
 										}
-								if (null == integration)
-									emptyList()
-								else
-									listOf(PathContext(resource, integration, restApi))
+
+								val pathContexts =
+										if (null == integration) {
+											emptyList()
+										} else {
+											listOf(PathContext(resource, integration, restApi))
+										}
+
+								pathContexts
 							}
 				}
 				.map { ctx ->

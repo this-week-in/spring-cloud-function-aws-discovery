@@ -31,7 +31,8 @@ class LambdaDiscoveryClient(private val region: Regions,
 					.toMutableList()
 
 	override fun getInstances(serviceId: String): MutableList<ServiceInstance> =
-			mutableListOf(SimpleDiscoveryProperties.SimpleServiceInstance(URI.create(urlByFunctionName(serviceId))))
+			mutableListOf(SimpleDiscoveryProperties.SimpleServiceInstance(
+					URI.create(urlByFunctionName(serviceId))))
 
 	override fun description(): String = ("A discovery client that returns URIs " +
 			"for AWS Lambda functions mapped to API Gateway endpoints")

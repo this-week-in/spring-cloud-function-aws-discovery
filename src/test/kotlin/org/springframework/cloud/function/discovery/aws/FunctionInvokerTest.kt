@@ -4,6 +4,7 @@ import com.amazonaws.services.lambda.AWSLambda
 import com.amazonaws.services.lambda.invoke.LambdaFunction
 import com.amazonaws.services.lambda.invoke.LambdaInvokerFactory
 import org.assertj.core.api.Assertions
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,6 +32,7 @@ class FunctionInvokerTest {
 	data class UppercaseResponse(var outgoing: String? = null)
 
 	@Test
+	@Ignore
 	fun invokeFunction() {
 		val uppercaseService = LambdaInvokerFactory
 				.builder()

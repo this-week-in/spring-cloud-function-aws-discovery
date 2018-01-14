@@ -19,7 +19,7 @@ import java.net.URI
  * @author <a href="mailto:josh@joshlong.com">Josh Long</a>
  *
  */
-class LambdaDiscoveryClient(private val region: Regions,
+open class LambdaDiscoveryClient(private val region: Regions,
                             private val amazonApiGateway: AmazonApiGateway,
                             private val lambda: AWSLambda) : DiscoveryClient {
 	/**

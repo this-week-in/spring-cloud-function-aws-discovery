@@ -51,6 +51,5 @@ class AwsAutoConfiguration(private val env: Environment) {
 			.build()
 
 	@Bean
-	@ConditionalOnMissingBean
-	fun lambdaDiscoveryClient(): DiscoveryClient = LambdaDiscoveryClient(region(), amazonApiGateway(), awsLambda())
+	fun lambdaDiscoveryClient() = LambdaDiscoveryClient(region(), amazonApiGateway(), awsLambda())
 }

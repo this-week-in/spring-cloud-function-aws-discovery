@@ -1,1 +1,2 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=org.springframework.cloud.function.discovery.aws.AwsAutoConfiguration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  org.springframework.cloud.function.discovery.aws.AwsAutoConfiguration

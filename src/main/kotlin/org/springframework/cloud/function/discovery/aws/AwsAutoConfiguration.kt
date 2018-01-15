@@ -21,10 +21,8 @@ import org.springframework.core.env.Environment
 @Configuration
 class AwsAutoConfiguration(private val env: Environment) {
 
-	private val defaultRegionName = Regions.US_EAST_1.name.toLowerCase().replace("_", "-")
-
 	private val region = Regions.fromName(
-			env.getProperty("cloud.aws.region", defaultRegionName))
+			env.getProperty("cloud.aws.region", System.getenv("AWS_REGION")))
 
 	@Bean
 	@ConditionalOnMissingBean

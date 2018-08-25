@@ -30,7 +30,8 @@ class AwsAutoConfiguration(private val env: Environment) {
 
 	@Bean
 	@ConditionalOnMissingBean
-	fun awsLambda(): AWSLambda = AWSLambdaClientBuilder.standard()
+	fun awsLambda(): AWSLambda = AWSLambdaClientBuilder
+			.standard()
 			.withCredentials(awsCredentialsProvider())
 			.withRegion(region)
 			.build()

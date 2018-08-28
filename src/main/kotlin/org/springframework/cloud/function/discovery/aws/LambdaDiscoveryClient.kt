@@ -129,7 +129,7 @@ open class LambdaDiscoveryClient(
 							}
 							.map { ctx ->
 								if (ctx.integrationResult.uri.contains(fnArn)) {
-									"https://${ctx.restApi.id}.execute-api.${region.getName()}.amazonaws.com/prod/${ctx.resource.pathPart}"
+									"https://${ctx.restApi.id}.execute-api.${region.getName()}.amazonaws.com/Prod/${ctx.resource.pathPart}"
 								} else
 									null
 							}

@@ -7,12 +7,7 @@ import com.amazonaws.services.lambda.AWSLambda
 import com.amazonaws.services.lambda.model.GetFunctionRequest
 import org.springframework.cloud.client.ServiceInstance
 import org.springframework.cloud.client.discovery.DiscoveryClient
-import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryProperties
-import org.springframework.util.Assert
 import java.net.URI
-import java.util.stream.Collectors
-import java.util.stream.Stream
-import kotlin.streams.toList
 
 /**
  * A {@link DiscoveryClient} implementation that provides URLs for
@@ -23,10 +18,10 @@ import kotlin.streams.toList
  * @author <a href="mailto:josh@joshlong.com">Josh Long</a>
  *
  */
-open class LambdaDiscoveryClient(private val region: Regions,
-                                 private val amazonApiGateway: AmazonApiGateway,
-                                 private val lambda: AWSLambda) : DiscoveryClient {
-
+open class LambdaDiscoveryClient(
+		private val region: Regions,
+		private val amazonApiGateway: AmazonApiGateway,
+		private val lambda: AWSLambda) : DiscoveryClient {
 
 	/**
 	 * Returns a list of the logical names for AWS Lambda functions
@@ -52,9 +47,25 @@ open class LambdaDiscoveryClient(private val region: Regions,
 			arrayOf("GET", "POST", "DELETE", "OPTIONS", "ANY", "PUT")
 		}
 		val uri = URI.create(urlByFunctionName(serviceName, methods = verbs))
-		return arrayListOf(SimpleDiscoveryProperties.SimpleServiceInstance(uri) as ServiceInstance)
+		val si = SimpleServiceInstance(uri = uri, sid = serviceName) as ServiceInstance
+		return arrayListOf(si)
 	}
 
+
+	class SimpleServiceInstance(private val uri: URI, private val sid: String) : ServiceInstance {
+
+		override fun getServiceId(): String = sid
+
+		override fun getMetadata(): Map<String, String> = emptyMap()
+
+		override fun getPort(): Int = uri.port
+
+		override fun getHost() = uri.host
+
+		override fun getUri(): URI = uri
+
+		override fun isSecure(): Boolean = (uri.scheme ?: "http").toLowerCase().contains("https")
+	}
 
 	override fun description(): String = ("A discovery client that returns URIs " +
 			"for AWS Lambda functions mapped to API Gateway endpoints")

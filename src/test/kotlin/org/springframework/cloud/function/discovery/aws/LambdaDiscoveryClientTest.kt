@@ -87,7 +87,7 @@ class LambdaDiscoveryClientTest {
 					.withHttpMethod("ANY")
 					.withRestApiId(restApiId)
 					.withResourceId(resourceId)
-			Mockito.`when`(amazonApiGateway!!.getIntegration(getIntegrationRequest))
+			Mockito.`when`(this.amazonApiGateway!!.getIntegration(getIntegrationRequest))
 					.thenReturn(GetIntegrationResult().withUri(integrationUri))
 
 			Mockito.`when`(this.amazonApiGateway!!.getResources(GetResourcesRequest().withRestApiId(restApiId)))

@@ -28,7 +28,7 @@ class DiscoveryClientTest {
 	@Test
 	fun provides() {
 		val dc = sc!!.discoveryClient
-		Assertions.assertThat(dc).isNotNull()
+		Assertions.assertThat(dc).isNotNull
 		val predicate = Predicate<DiscoveryClient> {
 			it is CompositeDiscoveryClient && it.discoveryClients.filter { it is LambdaDiscoveryClient }.any()
 		}

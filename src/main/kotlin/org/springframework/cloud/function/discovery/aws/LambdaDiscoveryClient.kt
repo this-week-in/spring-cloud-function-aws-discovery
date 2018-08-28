@@ -4,6 +4,7 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.apigateway.AmazonApiGateway
 import com.amazonaws.services.apigateway.model.*
 import com.amazonaws.services.lambda.AWSLambda
+import com.amazonaws.services.lambda.model.FunctionConfiguration
 import com.amazonaws.services.lambda.model.GetFunctionRequest
 import org.springframework.cloud.client.ServiceInstance
 import org.springframework.cloud.client.discovery.DiscoveryClient
@@ -26,18 +27,15 @@ open class LambdaDiscoveryClient(
 	/**
 	 * Returns a list of the logical names for AWS Lambda functions
 	 */
-	override fun getServices(): MutableList<String> =
-			lambda
-					.listFunctions()
-					.functions
-					.map { it.functionName }
-					.toMutableList()
+	override fun getServices(): List<String> = (lambda.listFunctions()?.functions ?: emptyList<FunctionConfiguration>())
+			.map { it.functionName }
+			.toMutableList()
 
 	/**
 	 * For any given service {@code foo} there's only one addressable URL in
 	 * AWS (behind the gateway), so this returns that single URL.
 	 */
-	override fun getInstances(serviceId: String): List<ServiceInstance> {
+	override fun getInstances(serviceId: String): MutableList<ServiceInstance> {
 		val split = serviceId.split(':')
 		val serviceName = split[0]
 		val verbs: Array<String> = if (split.size > 1) {
@@ -46,9 +44,15 @@ open class LambdaDiscoveryClient(
 		} else {
 			arrayOf("GET", "POST", "DELETE", "OPTIONS", "ANY", "PUT")
 		}
-		val uri = URI.create(urlByFunctionName(serviceName, methods = verbs))
-		val si = SimpleServiceInstance(uri = uri, sid = serviceName) as ServiceInstance
-		return arrayListOf(si)
+		val url: String? = urlByFunctionName(serviceName, methods = verbs)
+		val res: MutableList<ServiceInstance>? = url?.let { x ->
+			val uri = URI.create(url)
+			val si = SimpleServiceInstance(uri = uri, sid = serviceName) as ServiceInstance
+			mutableListOf(si)
+		}
+		val results = mutableListOf<ServiceInstance>()
+		res?.forEach { results.add(it) }
+		return results
 	}
 
 
@@ -81,52 +85,58 @@ open class LambdaDiscoveryClient(
 		                       val integrationResult: GetIntegrationResult,
 		                       val restApi: RestApi)
 
-		val fnArn = lambda.getFunction(GetFunctionRequest()
-				.withFunctionName(functionName))
-				.configuration
-				.functionArn
+		return this.services
+				.filter { it.toLowerCase().contains(functionName.toLowerCase()) }
+				.firstOrNull()?.let { match ->
 
-		return amazonApiGateway
-				.getRestApis(GetRestApisRequest())
-				.items
-				.flatMap { restApi ->
+					val fnArn = lambda.getFunction(GetFunctionRequest()
+							.withFunctionName(match))
+							.configuration
+							.functionArn
 
-					val pathContexts: List<PathContext> = amazonApiGateway
-							.getResources(GetResourcesRequest().withRestApiId(restApi.id))
+					return amazonApiGateway
+							.getRestApis(GetRestApisRequest())
 							.items
-							.flatMap { resource ->
+							.flatMap { restApi ->
 
-								fun forMethod(method: String): PathContext? {
-									val integration: GetIntegrationResult? =
-											try {
-												val integrationRequest = GetIntegrationRequest()
-														.withHttpMethod(method)
-														.withRestApiId(restApi.id)
-														.withResourceId(resource.id)
+								val pathContexts: List<PathContext> = amazonApiGateway
+										.getResources(GetResourcesRequest().withRestApiId(restApi.id))
+										.items
+										.flatMap { resource ->
 
-												amazonApiGateway.getIntegration(integrationRequest)
-											} catch (e: Exception) {
-												null
+											fun forMethod(method: String): PathContext? {
+												val integration: GetIntegrationResult? =
+														try {
+															val integrationRequest = GetIntegrationRequest()
+																	.withHttpMethod(method)
+																	.withRestApiId(restApi.id)
+																	.withResourceId(resource.id)
+
+															amazonApiGateway.getIntegration(integrationRequest)
+														} catch (e: Exception) {
+															null
+														}
+
+												return if (null != integration) PathContext(resource, integration, restApi) else null
 											}
 
-									return if (null != integration) PathContext(resource, integration, restApi) else null
-								}
-
-								methods.flatMap {
-									val pc = forMethod(it)
-									if (pc == null) emptyList<PathContext>() else arrayListOf(pc)
-								}
+											methods.flatMap {
+												val pc = forMethod(it)
+												if (pc == null) emptyList<PathContext>() else arrayListOf(pc)
+											}
+										}
+								pathContexts
 							}
-					pathContexts
+							.map { ctx ->
+								if (ctx.integrationResult.uri.contains(fnArn)) {
+									"https://${ctx.restApi.id}.execute-api.${region.getName()}.amazonaws.com/prod/${ctx.resource.pathPart}"
+								} else
+									null
+							}
+							.filter { it != null }
+							.toSet()
+							.first { it != null }
 				}
-				.map { ctx ->
-					if (ctx.integrationResult.uri.contains(fnArn)) {
-						"https://${ctx.restApi.id}.execute-api.${region.getName()}.amazonaws.com/prod/${ctx.resource.pathPart}"
-					} else
-						null
-				}
-				.filter { it != null }
-				.toSet()
-				.first { it != null }
+
 	}
 }

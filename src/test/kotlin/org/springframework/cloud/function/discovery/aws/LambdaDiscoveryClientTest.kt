@@ -46,6 +46,7 @@ class LambdaDiscoveryClientTest {
 					FunctionConfiguration().withFunctionName("B"))
 			Mockito.`when`(result.functions).thenReturn(fns)
 			Mockito.`when`(awsLambda.listFunctions()).thenReturn(result)
+
 		}
 
 		setUp()
@@ -69,6 +70,11 @@ class LambdaDiscoveryClientTest {
 			Mockito.`when`(result.configuration).thenReturn(fnConfig)
 			Mockito.`when`(this.lambda!!.getFunction(Mockito.any(GetFunctionRequest::class.java)))
 					.thenReturn(result)
+
+
+			val fc = FunctionConfiguration().withFunctionArn("arn").withFunctionName("serviceId")
+			val lfr = ListFunctionsResult().withFunctions(arrayListOf(fc))
+			Mockito.`when`(this.lambda!!.listFunctions()).thenReturn(lfr)
 		}
 
 		fun gwSetup() {

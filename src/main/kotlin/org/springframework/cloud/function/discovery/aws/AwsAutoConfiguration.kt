@@ -8,7 +8,6 @@ import com.amazonaws.services.apigateway.AmazonApiGatewayClientBuilder
 import com.amazonaws.services.lambda.AWSLambda
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.cloud.client.discovery.DiscoveryClient
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
@@ -20,6 +19,10 @@ import org.springframework.core.env.Environment
  */
 @Configuration
 class AwsAutoConfiguration(private val env: Environment) {
+
+	init {
+		println(System.getenv("AWS_REGION").reversed())
+	}
 
 	private val region = Regions.fromName(
 			env.getProperty("cloud.aws.region", System.getenv("AWS_REGION")))

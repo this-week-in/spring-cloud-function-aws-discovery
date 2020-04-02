@@ -4,7 +4,6 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.apigateway.AmazonApiGateway
 import com.amazonaws.services.apigateway.model.*
 import com.amazonaws.services.lambda.AWSLambda
-import com.amazonaws.services.lambda.model.FunctionConfiguration
 import com.amazonaws.services.lambda.model.GetFunctionRequest
 import org.springframework.cloud.client.ServiceInstance
 import org.springframework.cloud.client.discovery.DiscoveryClient
@@ -45,7 +44,7 @@ open class LambdaDiscoveryClient(
 			arrayOf("GET", "POST", "DELETE", "OPTIONS", "ANY", "PUT")
 		}
 		val url: String? = urlByFunctionName(serviceName, methods = verbs)
-		val res: MutableList<ServiceInstance>? = url?.let { x ->
+		val res: MutableList<ServiceInstance>? = url?.let {
 			val uri = URI.create(url)
 			val si = SimpleServiceInstance(uri = uri, sid = serviceName) as ServiceInstance
 			mutableListOf(si)

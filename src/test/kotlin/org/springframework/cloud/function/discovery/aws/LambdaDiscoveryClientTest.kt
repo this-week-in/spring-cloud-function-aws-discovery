@@ -59,7 +59,6 @@ class LambdaDiscoveryClientTest {
 	@Test
 	fun getInstances() {
 
-		val fnName = "uppercase"
 		val arn = "a:arn:thing"
 		val integrationUri = "integrationUri${arn}"
 		fun lambdaSetup() {

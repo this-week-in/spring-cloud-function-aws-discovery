@@ -17,7 +17,6 @@ import java.net.URI
  * for the AWS API Gateway.
  *
  * @author <a href="mailto:josh@joshlong.com">Josh Long</a>
- *
  */
 open class LambdaDiscoveryClient(
 		private val region: Regions,
@@ -27,9 +26,10 @@ open class LambdaDiscoveryClient(
 	/**
 	 * Returns a list of the logical names for AWS Lambda functions
 	 */
-	override fun getServices(): List<String> = (lambda.listFunctions()?.functions ?: emptyList<FunctionConfiguration>())
-			.map { it.functionName }
-			.toMutableList()
+	override fun getServices(): List<String> =
+			(lambda.listFunctions()?.functions ?: emptyList())
+					.map { it.functionName }
+					.toMutableList()
 
 	/**
 	 * For any given service {@code foo} there's only one addressable URL in
@@ -56,21 +56,6 @@ open class LambdaDiscoveryClient(
 	}
 
 
-	class SimpleServiceInstance(private val uri: URI, private val sid: String) : ServiceInstance {
-
-		override fun getServiceId(): String = sid
-
-		override fun getMetadata(): Map<String, String> = emptyMap()
-
-		override fun getPort(): Int = uri.port
-
-		override fun getHost() = uri.host
-
-		override fun getUri(): URI = uri
-
-		override fun isSecure(): Boolean = (uri.scheme ?: "http").toLowerCase().contains("https")
-	}
-
 	override fun description(): String = ("A discovery client that returns URIs " +
 			"for AWS Lambda functions mapped to API Gateway endpoints")
 			.trim()
@@ -86,8 +71,8 @@ open class LambdaDiscoveryClient(
 		                       val restApi: RestApi)
 
 		return this.services
-				.filter { it.toLowerCase().contains(functionName.toLowerCase()) }
-				.firstOrNull()?.let { match ->
+				.firstOrNull { it.toLowerCase().contains(functionName.toLowerCase()) } //
+				?.let { match ->
 
 					val fnArn = lambda.getFunction(GetFunctionRequest()
 							.withFunctionName(match))
@@ -111,32 +96,44 @@ open class LambdaDiscoveryClient(
 																	.withHttpMethod(method)
 																	.withRestApiId(restApi.id)
 																	.withResourceId(resource.id)
-
 															amazonApiGateway.getIntegration(integrationRequest)
 														} catch (e: Exception) {
 															null
 														}
-
-												return if (null != integration) PathContext(resource, integration, restApi) else null
+												return integration?.let { PathContext(resource, it, restApi) }
 											}
 
 											methods.flatMap {
-												val pc = forMethod(it)
-												if (pc == null) emptyList<PathContext>() else arrayListOf(pc)
+												forMethod(it)?.let { str -> listOf(str) } ?: emptyList()
 											}
 										}
 								pathContexts
-							}
-							.map { ctx ->
+							}//
+							.mapNotNull { ctx ->
 								if (ctx.integrationResult.uri.contains(fnArn)) {
 									"https://${ctx.restApi.id}.execute-api.${region.getName()}.amazonaws.com/Prod/${ctx.resource.pathPart}"
 								} else
 									null
 							}
-							.filter { it != null }
 							.toSet()
-							.first { it != null }
+							.first { true }
 				}
 
 	}
+}
+
+class SimpleServiceInstance(private val uri: URI, private val sid: String) : ServiceInstance {
+
+	override fun getServiceId(): String = sid
+
+	override fun getMetadata(): Map<String, String> = emptyMap()
+
+	override fun getPort(): Int = uri.port
+
+	override fun getHost() = uri.host
+
+	override fun getUri(): URI = uri
+
+	override fun isSecure(): Boolean = (uri.scheme
+			?: "http").toLowerCase().contains("https")
 }

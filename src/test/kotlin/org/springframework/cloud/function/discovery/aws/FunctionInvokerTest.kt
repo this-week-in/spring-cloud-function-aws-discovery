@@ -32,7 +32,7 @@ class FunctionInvokerTest {
 	data class UppercaseResponse(var outgoing: String? = null)
 
 	@Test
-	@Ignore
+ 	@Ignore
 	fun invokeFunction() {
 		val uppercaseService = LambdaInvokerFactory
 				.builder()

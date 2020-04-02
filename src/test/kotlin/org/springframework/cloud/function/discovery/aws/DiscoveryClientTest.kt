@@ -30,7 +30,7 @@ class DiscoveryClientTest {
 		val dc = sc!!.discoveryClient
 		Assertions.assertThat(dc).isNotNull
 		val predicate = Predicate<DiscoveryClient> {
-			it is CompositeDiscoveryClient && it.discoveryClients.filter { it is LambdaDiscoveryClient }.any()
+			it is CompositeDiscoveryClient && it.discoveryClients.filterIsInstance<LambdaDiscoveryClient>().any()
 		}
 		Assertions.assertThat(dc).`is`(Condition<DiscoveryClient>(
 				predicate, "this should be a ${CompositeDiscoveryClient::javaClass} that contains an " +
